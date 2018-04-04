@@ -7,6 +7,7 @@
 
 import tweepy
 import json
+import datetime
 
 # Create dictionary of companies and identifiers
 my_company_dict = {'MMM': ['3M', 'MMM stock'], \
@@ -76,7 +77,8 @@ class MyStreamListener(tweepy.StreamListener):
 	def __init__(self):
 		self.tweet_list = []
 		self.api = None
-		self.filename = 'tweets.dat'
+		now = datetime.datetime.now()
+		self.filename = 'tweets_{}_{}.dat'.format(now.month, now.day)
 	
 	def set_api(self, api):
 		self.api = api
@@ -91,9 +93,8 @@ class MyStreamListener(tweepy.StreamListener):
 		if tweet.set_company():
 			self.tweet_list.append(tweet)
 		print(len(self.tweet_list)), status.text, tweet.company
-		if len(self.tweet_list) and not len(self.tweet_list) % 10:
+		if len(self.tweet_list) and not len(self.tweet_list) % 100:
 			self.write_json()
-			
 
 	def on_error(self, status_code):
 		if status_code == 420:
