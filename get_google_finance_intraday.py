@@ -100,7 +100,7 @@ if __name__ == '__main__':
         for index, row in dataframe.iterrows():
             hourly_percent_changes.append((row['Close'] - row['Open']) / row['Open'] * 100)
 
-    # print (np.percentile(hourly_percent_changes, 33.33))
-    # print (np.percentile(hourly_percent_changes, 66.67))
-    print (np.percentile(hourly_percent_changes, 10))
-    print (np.percentile(hourly_percent_changes, 90))
+    print (np.percentile(hourly_percent_changes, 33.33))
+    print (np.percentile(hourly_percent_changes, 66.67))
+    # print (np.percentile(hourly_percent_changes, 10))
+    # print (np.percentile(hourly_percent_changes, 90))
