@@ -8,6 +8,9 @@
 import tweepy
 import json
 import datetime
+import time
+
+ROOT = '/root/StockPredictor/'
 
 # Create dictionary of companies and identifiers
 my_company_dict = {'MMM': ['3M', 'MMM stock'], \
@@ -78,7 +81,7 @@ class MyStreamListener(tweepy.StreamListener):
 		self.tweet_list = []
 		self.api = None
 		now = datetime.datetime.now()
-		self.filename = 'tweets_{}_{}.dat'.format(now.month, now.day)
+		self.filename = '{}tweets_{}_{}_{}_{}.dat'.format(ROOT, now.month, now.day, now.hour-4, now.minute)
 	
 	def set_api(self, api):
 		self.api = api
@@ -92,8 +95,14 @@ class MyStreamListener(tweepy.StreamListener):
 		#ensure you're only adding tweets where the company can be deciphered
 		if tweet.set_company():
 			self.tweet_list.append(tweet)
-		print(len(self.tweet_list)), status.text, tweet.company
-		if len(self.tweet_list) and not len(self.tweet_list) % 100:
+		
+		#guard against printing weird characters
+		try:
+			print(len(self.tweet_list)), status.text, tweet.company
+		except:
+			pass
+		
+		if len(self.tweet_list) and not len(self.tweet_list) % 200:
 			self.write_json()
 
 	def on_error(self, status_code):
@@ -105,7 +114,7 @@ class MyStreamListener(tweepy.StreamListener):
 		tweets = {}
 		for idx in range(len(self.tweet_list)):
 			tweets[idx] = self.tweet_list[idx].to_dict()
-		with open(self.filename, 'w') as outfile:
+		with open(self.filename, 'wb+') as outfile:
 			json.dump(tweets, outfile)
 			
 
