@@ -7,6 +7,7 @@ import csv
 import datetime
 import re
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -32,13 +33,13 @@ def get_google_finance_intraday(ticker, period=60, days=1):
         the retrieved price values.
     """
 
-    uri = 'http://www.google.com/finance/getprices' \
-          '?i={period}&p={days}d&f=d,o,h,l,c,v&df=cpct&q={ticker}'.format(ticker=ticker,
+    uri = 'https://www.google.com/finance/getprices' \
+          '?i={period}&p={days}d&f=d,c,h,l,o,v&df=cpct&q={ticker}'.format(ticker=ticker,
                                                                           period=period,
                                                                           days=days)
     page = requests.get(uri)
     reader = csv.reader(page.content.splitlines())
-    columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+    columns = ['Close', 'High', 'Low', 'Open', 'Volume']
     rows = []
     times = []
     for row in reader:
@@ -55,3 +56,51 @@ def get_google_finance_intraday(ticker, period=60, days=1):
     else:
         return pd.DataFrame(rows, index=pd.DatetimeIndex(times, name='Date'))
 
+company_tickers = [
+    'MMM',
+    'AXP',
+    'BA',
+    'CAT',
+    'CVX',
+    'KO',
+    'DIS',
+    'DWDP',
+    'XOM',
+    'GE',
+    'GS',
+    'HD',
+    'IBM',
+    'INTC',
+    'JNJ',
+    'JPM',
+    'MCD',
+    'NKE',
+    'PFE',
+    'AAPL',
+    'PG',
+    'TRV',
+    'UTX',
+    'UNH',
+    'VZ',
+    'V',
+    'WMT',
+    'MSFT',
+    'MRK',
+    'CSCO',
+]
+
+if __name__ == '__main__':
+    hourly_percent_changes = []
+    dfs = []
+
+    for item in company_tickers:
+        dfs.append(get_google_finance_intraday(item, 3600, 60))
+
+    for dataframe in dfs:
+        for index, row in dataframe.iterrows():
+            hourly_percent_changes.append((row['Close'] - row['Open']) / row['Open'] * 100)
+
+    # print (np.percentile(hourly_percent_changes, 33.33))
+    # print (np.percentile(hourly_percent_changes, 66.67))
+    print (np.percentile(hourly_percent_changes, 10))
+    print (np.percentile(hourly_percent_changes, 90))
