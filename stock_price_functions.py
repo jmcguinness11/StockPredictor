@@ -1,7 +1,4 @@
-#!/usr/bin/env python 
-"""
-Retrieve intraday stock data from Google Finance.
-"""
+#!/usr/bin/env python
 
 import csv
 import datetime
@@ -10,6 +7,42 @@ import re
 import numpy as np
 import pandas as pd
 import requests
+
+dfs = {}
+thresholds = []
+company_tickers = [
+    'MMM',
+    'AXP',
+    'BA',
+    'CAT',
+    'CVX',
+    'KO',
+    'DIS',
+    'DWDP',
+    'XOM',
+    'GE',
+    'GS',
+    'HD',
+    'IBM',
+    'INTC',
+    'JNJ',
+    'JPM',
+    'MCD',
+    'NKE',
+    'PFE',
+    'AAPL',
+    'PG',
+    'TRV',
+    'UTX',
+    'UNH',
+    'VZ',
+    'V',
+    'WMT',
+    'MSFT',
+    'MRK',
+    'CSCO',
+]
+
 
 # This function comes from https://gist.github.com/lebedov/f09030b865c4cb142af1
 def get_google_finance_intraday(ticker, period=60, days=1):
@@ -56,51 +89,43 @@ def get_google_finance_intraday(ticker, period=60, days=1):
     else:
         return pd.DataFrame(rows, index=pd.DatetimeIndex(times, name='Date'))
 
-company_tickers = [
-    'MMM',
-    'AXP',
-    'BA',
-    'CAT',
-    'CVX',
-    'KO',
-    'DIS',
-    'DWDP',
-    'XOM',
-    'GE',
-    'GS',
-    'HD',
-    'IBM',
-    'INTC',
-    'JNJ',
-    'JPM',
-    'MCD',
-    'NKE',
-    'PFE',
-    'AAPL',
-    'PG',
-    'TRV',
-    'UTX',
-    'UNH',
-    'VZ',
-    'V',
-    'WMT',
-    'MSFT',
-    'MRK',
-    'CSCO',
-]
+def populateDataframes():
+    for ticker in company_tickers:
+        dfs[ticker] = get_google_finance_intraday(ticker, 3600, 60)
 
-if __name__ == '__main__':
+def calculateThresholds():
+    if not dfs:
+        populateDataframes()
+
     hourly_percent_changes = []
-    dfs = []
-
-    for item in company_tickers:
-        dfs.append(get_google_finance_intraday(item, 3600, 60))
-
-    for dataframe in dfs:
-        for index, row in dataframe.iterrows():
+    for key in dfs:
+        for index, row in dfs[key].iterrows():
             hourly_percent_changes.append((row['Close'] - row['Open']) / row['Open'] * 100)
 
-    print (np.percentile(hourly_percent_changes, 33.33))
-    print (np.percentile(hourly_percent_changes, 66.67))
-    # print (np.percentile(hourly_percent_changes, 10))
-    # print (np.percentile(hourly_percent_changes, 90))
+    thresholds.append(np.percentile(hourly_percent_changes, 33))
+    thresholds.append(np.percentile(hourly_percent_changes, 67))
+
+def getClass(datetime, ticker):
+    if not thresholds:
+        calculateThresholds()
+
+    open = dfs[ticker].loc[datetime, 'Open']
+    close = dfs[ticker].loc[datetime, 'Close']
+    print(open, close)
+    percent_change = (close - open) / open * 100
+    if percent_change > thresholds[1]:
+        return 1
+    elif percent_change > thresholds[0]:
+        return 0
+    else:
+        return -1
+
+
+if __name__ == '__main__':
+    print (getClass(datetime.datetime(2018, 4, 17, 10, 0, 0), 'AAPL'))
+    print (getClass(datetime.datetime(2018, 4, 17, 11, 0, 0), 'AAPL'))
+    print (getClass(datetime.datetime(2018, 4, 17, 12, 0, 0), 'AAPL'))
+
+    print (getClass(datetime.datetime(2018, 4, 18, 10, 0, 0), 'AAPL'))
+    print (getClass(datetime.datetime(2018, 4, 18, 11, 0, 0), 'AAPL'))
+    print (getClass(datetime.datetime(2018, 4, 18, 12, 0, 0), 'AAPL'))
