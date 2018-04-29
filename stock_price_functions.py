@@ -105,14 +105,16 @@ def calculateThresholds():
     thresholds.append(np.percentile(hourly_percent_changes, 33))
     thresholds.append(np.percentile(hourly_percent_changes, 67))
 
-def getClass(datetime, ticker):
+def getLabel(ticker, month, day, hour):
     if not thresholds:
         calculateThresholds()
 
-    open = dfs[ticker].loc[datetime, 'Open']
-    close = dfs[ticker].loc[datetime, 'Close']
-    print(open, close)
-    percent_change = (close - open) / open * 100
+    time = datetime.datetime(2018, month, day, hour, 0, 0)
+    open_price = dfs[ticker].loc[time, 'Open']
+    close_price = dfs[ticker].loc[time, 'Close']
+    print(open_price, close_price)
+
+    percent_change = (close_price - open_price) / open_price * 100
     if percent_change > thresholds[1]:
         return 1
     elif percent_change > thresholds[0]:
@@ -122,10 +124,6 @@ def getClass(datetime, ticker):
 
 
 if __name__ == '__main__':
-    print (getClass(datetime.datetime(2018, 4, 17, 10, 0, 0), 'AAPL'))
-    print (getClass(datetime.datetime(2018, 4, 17, 11, 0, 0), 'AAPL'))
-    print (getClass(datetime.datetime(2018, 4, 17, 12, 0, 0), 'AAPL'))
-
-    print (getClass(datetime.datetime(2018, 4, 18, 10, 0, 0), 'AAPL'))
-    print (getClass(datetime.datetime(2018, 4, 18, 11, 0, 0), 'AAPL'))
-    print (getClass(datetime.datetime(2018, 4, 18, 12, 0, 0), 'AAPL'))
+    print (getLabel('AAPL', 4, 19, 12))
+    print (getLabel('AAPL', 4, 19, 13))
+    print (getLabel('AAPL', 4, 19, 14))
