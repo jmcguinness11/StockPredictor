@@ -114,26 +114,33 @@ def neuralNet(tweets, final_words):
 	for tweet in tweets:
 		input_data.append(tweet[0])
 		output_data.append(tweet[1])
+	print len(input_data), len(output_data)
+	input_data = np.array(input_data)
+	output_data = np.array(output_data)
+	print input_data.shape, output_data.shape
 	nnet.fit(input_data, output_data)
-	return nnet
+	return nnet, input_data
 
 def runPredictions(data, nnet):
 	for tweet in data:
+		tweet = tweet.reshape(1,-1)
 		print nnet.predict(tweet)
 
 def main():
-	#days = [9,10,11,12,13,16,17]
+	days = [9,10,11,12,13,16,17,18,19,20,23,24,25,26,27]
 	days = [9]
 	tweets = loadData([4], days)
 	#print len(all_words), len(set(all_words))
 	final_words = createFinalWords()
 	tweets = tweetsToBagOfWords(tweets, final_words)
 	#print json.dumps(tweets)
-	nn = neuralNet(tweets, final_words)
+	nn, input_data = neuralNet(tweets, final_words)
 
+	'''
 	input_data = []
 	for tweet in tweets['AAPL']:
 		input_data.append(tweet[0])
+	'''
 	runPredictions(input_data, nn)
 
 if __name__=='__main__':
