@@ -83,7 +83,8 @@ def createFinalWords():
 		if all_words.count(word) > low_threshold and all_words.count(word) < high_threshold: 
 			final_words.append(word)
 	counts = np.asarray(counts)
-	#print np.percentile(counts,65), np.percentile(counts,98)
+	print 'Percentiles: 10, 20, 40, 60, 80, 90'
+	print np.percentile(counts,10), np.percentile(counts,20), np.percentile(counts,40), np.percentile(counts,60), np.percentile(counts,80), np.percentile(counts,90)
 	return final_words
 
 # Function directly from J. Knight
@@ -109,12 +110,13 @@ def runPredictions(data, nnet):
 
 def main():
 	days = [9,10,11,12,13,16,17,18,19,20,23,24,25,26,27]
+	days = [9,10,11,12,13]
 	tweets = loadData([4], days)
 	print 'Creating Final Words...'
 	final_words = createFinalWords()
 	tweets = tweetsToBagOfWords(tweets, final_words)
-	tweet_file = 'data/tweets_test.dat'
-	final_word_file = 'data/final_words.dat'
+	tweet_file = 'data/tweets_week1.json'
+	final_word_file = 'data/final_words_week1.dat'
 	
 	#Write to tweet file
 	with open(tweet_file, 'w') as f:
