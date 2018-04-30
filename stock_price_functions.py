@@ -112,7 +112,6 @@ def getLabel(ticker, month, day, hour):
     time = datetime.datetime(2018, month, day, hour, 0, 0)
     open_price = dfs[ticker].loc[time, 'Open']
     close_price = dfs[ticker].loc[time, 'Close']
-    print(open_price, close_price)
 
     percent_change = (close_price - open_price) / open_price * 100
     if percent_change > thresholds[1]:
