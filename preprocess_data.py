@@ -1,5 +1,5 @@
-# neural_net.py
-# In this file we actually run a neural network on the tweet data.
+# preprocess_data.py
+# In this file we prepare our data to be run through our neural network.
 # To write this file, we borrowed heavily from the following article:
 # https://medium.com/@joshua_e_k/predicting-popular-tweets-with-python-and-neural-networks-on-a-raspberry-pi-71b63616c2f4
 
@@ -45,13 +45,6 @@ def parseJSON(data, month, day, hour):
 				all_word_dict[word] += 1
 			except KeyError as ex:
 				all_word_dict[word] = 1
-			'''
-			if word not in all_word_dict.keys():
-				all_word_dict[word] = 1
-			else:
-				all_word_dict[word] += 1
-			'''
-		#all_words.extend(text)
 		label = getStockLabel(tweet['company'], month, day, hour)
 		results[tweet['company']].append([text,label])
 	return results
@@ -64,7 +57,7 @@ def loadData(months, days, file_ticker):
 		for day in days:
 			for hour in hours:
 				for minute in minutes:
-					filename = 'tweets_{}_{}_{}_{}.dat'.format(month, day, hour, minute)
+					filename = 'tweets/tweets_{}_{}_{}_{}.dat'.format(month, day, hour, minute)
 					print 'Compiling data from {}...'.format(filename)
 					with open(filename, 'r') as f:
 						try:
@@ -85,11 +78,10 @@ def loadData(months, days, file_ticker):
 def createFinalWords():
 
 	low_threshold = 150
-	high_threshold = 200
 
 	final_words = []
 	for word, count in all_word_dict.iteritems():
-		if count >= low_threshold and count < high_threshold:
+		if count >= low_threshold:
 			final_words.append(word)
 	return final_words
 
@@ -104,19 +96,35 @@ def toBOW(sentence, words):
 def tweetsToBagOfWords(tweets, final_words):
 	result = collections.defaultdict(list)
 	for ticker in tweets.iterkeys():
+		total = len(tweets[ticker])
+		curr = 0
+		bool firstprint = False
+		bool secondprint = False
+		bool thirdprint = False
 		for tweet_data in tweets[ticker]:
 			tweet_data[0] = toBOW(tweet_data[0], final_words)
-			result[ticker].append(tweet_data)
+			#get rid of tweets with no matches
+			if sum(tweet_data[0] != 0):
+				result[ticker].append(tweet_data)
+
+			pct_done = 1.*curr/total 
+			if not firstprint and pct_done >= .25:
+				print pct_done
+				firstprint = true
+			elif not secondprint and pct_done >= .5:
+				print pct_done
+
+			curr += 1
 	return result
 
 def main():
 	days = [9,10,11,12,13,16,17,18,19,20,23,24,25,26,27]
 	days = [9,10,11,12,13,16,17,18,19,20]
-	#days = [9,10,11,12,13]
 	tweets = loadData([4], days, 'AAPL')
 	print 'Creating Final Words...'
 	final_words = createFinalWords()
 	tweets = tweetsToBagOfWords(tweets, final_words)
+
 	tweet_file = 'data/tweets_week1-2_AAPL.json'
 	final_word_file = 'data/final_words_week1-2_AAPL.dat'
 	
