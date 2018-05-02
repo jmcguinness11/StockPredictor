@@ -50,8 +50,7 @@ def parseJSON(data, month, day, hour):
 		results[tweet['company']].append([text,label])
 	return results
 
-def loadData(months, days, file_ticker):
-	hours = [10, 11, 12, 13, 14]
+def loadData(months, days, file_ticker, hours = [10, 11, 12, 13, 14]):
 	minutes = [0, 15, 30, 45]
 	output_data = collections.defaultdict(list)
 	for month in months:
