@@ -13,6 +13,7 @@ from operator import itemgetter
 import stock_price_functions
 import collections
 import json
+import sys
 import numpy as np
 import random
 
@@ -74,16 +75,15 @@ def loadData(months, days, file_ticker):
 						f.close()
 	return output_data
 
-# Function closely adapted from J. Knight
-def createFinalWords():
 
-	low_threshold = 150
-
-	final_words = []
-	for word, count in all_word_dict.iteritems():
-		if count >= low_threshold:
-			final_words.append(word)
-	return final_words
+# Loads final words created in create_final_words
+def loadFinalWords(wordfile):
+	result = []
+	with open(wordfile, 'r') as f:
+		for line in f:
+			result.append(line.strip())
+	f.close()
+	return result
 
 # Function directly from J. Knight
 def toBOW(sentence, words):
@@ -92,51 +92,57 @@ def toBOW(sentence, words):
 		bag.append(1) if word in sentence else bag.append(0)
 	return bag
 
+
 # Function adapted from J. Knight
 def tweetsToBagOfWords(tweets, final_words):
 	result = collections.defaultdict(list)
 	for ticker in tweets.iterkeys():
 		total = len(tweets[ticker])
 		curr = 0
-		bool firstprint = False
-		bool secondprint = False
-		bool thirdprint = False
+		firstprint = False
+		secondprint = False
+		thirdprint = False
 		for tweet_data in tweets[ticker]:
 			tweet_data[0] = toBOW(tweet_data[0], final_words)
 			#get rid of tweets with no matches
-			if sum(tweet_data[0] != 0):
+			if sum(tweet_data[0]) != 0:
 				result[ticker].append(tweet_data)
 
 			pct_done = 1.*curr/total 
 			if not firstprint and pct_done >= .25:
-				print pct_done
-				firstprint = true
+				print 'Progress: {}'.format(pct_done)
+				firstprint = True
 			elif not secondprint and pct_done >= .5:
-				print pct_done
+				print 'Progress: {}'.format(pct_done)
+				secondprint = True
+			elif not thirdprint and pct_done >= .75:
+				print 'Progress: {}'.format(pct_done)
+				thirdprint = True
 
 			curr += 1
 	return result
 
 def main():
+
+	#ticker and test week are command line args
+	ticker = sys.argv[1]
+	week = int(sys.argv[2])
+
+	#calculate training days and testing days
 	days = [9,10,11,12,13,16,17,18,19,20,23,24,25,26,27]
-	days = [9,10,11,12,13,16,17,18,19,20]
-	tweets = loadData([4], days, 'AAPL')
+	begin_idx = week-1
+	days = days[5*begin_idx:5*begin_idx+5]
+
+	tweets = loadData([4], days, ticker)
 	print 'Creating Final Words...'
-	final_words = createFinalWords()
+	final_words = loadFinalWords('data/final_words_{}.dat'.format(ticker))
 	tweets = tweetsToBagOfWords(tweets, final_words)
 
-	tweet_file = 'data/tweets_week1-2_AAPL.json'
-	final_word_file = 'data/final_words_week1-2_AAPL.dat'
+	tweet_file = 'data/tweets_week{}_{}.json'.format(week, ticker)
 	
 	#Write to tweet file
 	with open(tweet_file, 'w') as f:
 		json.dump(tweets, f)
-	
-	#Write to final word file
-	with open(final_word_file, 'w') as f:
-		for word in final_words:
-			f.write(word)
-			f.write("\n")
 
 if __name__=='__main__':
 	main()
