@@ -40,7 +40,7 @@ def neuralNet(tweets_arrays, final_words, ticker):
 	#	  -- so we should figure out how to get its length from the tweet data
 	nnet = MLPClassifier(activation='relu', alpha=0.00001, \
 				hidden_layer_sizes=(int(len(final_words)*0.5), \
-				int(len(final_words)*0.25)),solver='adam', max_iter=400, \
+				int(len(final_words)*0.25)),solver='adam', max_iter=4000, \
 				verbose=10)
 	input_data = []
 	output_data = []
