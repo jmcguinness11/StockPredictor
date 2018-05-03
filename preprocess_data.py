@@ -32,7 +32,7 @@ def prepareSentence(s):
 
 #returns label for company and time
 def getStockLabel(ticker, month, day, hour):
-	x = stock_price_functions.getLabel(ticker, month, day, hour)
+	x = stock_price_functions.getLabel(ticker, month, day, hour + 1) # get label for next hour
 	return x
 
 #parses individual json file
