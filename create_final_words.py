@@ -1,5 +1,7 @@
 # preprocess_data.py
-# In this file we prepare our data to be run through our neural network.
+# In this file we begin to prepare our data to be run through the neural
+# network by creating the list of final words that will be used to create
+# the binary vectors that will represent the tweets in the network.
 # To write this file, we borrowed heavily from the following article:
 # https://medium.com/@joshua_e_k/predicting-popular-tweets-with-python-and-neural-networks-on-a-raspberry-pi-71b63616c2f4
 
@@ -83,7 +85,7 @@ def createFinalWords():
 	K = len(all_word_dict)
 	t = 5000./K
 	print K, t
-	low_threshold = 30. / t
+	low_threshold = 20. / t
 	print 'threshold:', low_threshold
 
 	final_words = []

@@ -1,17 +1,7 @@
 # neural_net.py
 # In this file we actually run a neural network on the tweet data.
-# To write this file, we borrowed heavily from the following article:
-# https://medium.com/@joshua_e_k/predicting-popular-tweets-with-python-and-neural-networks-on-a-raspberry-pi-71b63616c2f4
 
 from sklearn.neural_network import MLPClassifier
-import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
-from nltk.stem.lancaster import LancasterStemmer
-from nltk.corpus import stopwords
-import re
-from operator import itemgetter
-import collections
 import json
 import sys
 import numpy as np
@@ -32,15 +22,12 @@ def loadBagOfWords(bagfile):
 		return result
 	
 
-#This will eventually be in a different file -- the actual neural net
+#The actual neural net
 def neuralNet(tweets_arrays, final_words, ticker):
 	#Define and train the network
-	#TODO -- we can change the input lengths
-	#TODO -- we actually don't need to load in final_words at all
-	#	  -- so we should figure out how to get its length from the tweet data
 	nnet = MLPClassifier(activation='relu', alpha=0.00001, \
-				hidden_layer_sizes=(int(len(final_words)*0.5), \
-				int(len(final_words)*0.25)),solver='adam', max_iter=4000, \
+				hidden_layer_sizes=(int(len(final_words)*0.6), \
+				int(len(final_words)*0.3)),solver='adam', max_iter=4000, \
 				verbose=10)
 	input_data = []
 	output_data = []
@@ -71,7 +58,7 @@ def runPredictions(data, label, nnet):
 			numCorrect += 1
 
 	print 'Predictions: {}\tActual: {}'.format(cts, label)
-	return numCorrect, len(data)
+	return numCorrect, len(data), cts
 
 def main():
 	#ticker and test week are command line args
@@ -94,17 +81,36 @@ def main():
 
 	correct_total = 0
 	count_total = 0
+	cts_total = [0,0,0]
+	labels_total = [0,0,0]
+	cts_correct = [0,0,0]
 	for day in test_days:
 		for hour in [10, 11, 12, 13, 14]:
 			tweets_test = preprocess_data.loadData([4], [day], ticker, [hour])
 			tweets_test = preprocess_data.tweetsToBagOfWords(tweets_test, final_words)
 			label = preprocess_data.getStockLabel(ticker, 4, day, hour)
-			correct, count = runPredictions(tweets_test[ticker], label, nn)
+			correct, count, cts = runPredictions(tweets_test[ticker], label, nn)
+
+			#aggregate counts
+			for k in range(len(cts_total)):
+				cts_total[k] += cts[k]
+			cts_correct[label+1] += cts[label+1]
+			labels_total[label+1] += sum(cts)
+
 			correct_total += correct
 			count_total += count
 			acc = correct * 1.0 / count
 			print 'Accuracy for {}:00 hour on April {}: {}'.format(hour, day, acc)
 	print 'Overall testing accuracy for week {}: {}'.format(test_week, correct_total * 1.0 / count_total)
+	neg1_precision = 1.0*cts_correct[0]/cts_total[0]
+	zero_precision = 1.0*cts_correct[1]/cts_total[1]
+	one_precision = 1.0*cts_correct[2]/cts_total[2]
+	neg1_recall = 1.0*cts_correct[0]/labels_total[0]
+	zero_recall = 1.0*cts_correct[1]/labels_total[1]
+	one_recall = 1.0*cts_correct[2]/labels_total[2]
+	print 'Precision by class:\n\t-1:\t{}\n\t0:\t{}\n\t1:\t{}'.format(neg1_precision, zero_precision, one_precision)
+	print 'Recall by class:\n\t-1:\t{}\n\t0:\t{}\n\t1:\t{}'.format(neg1_recall, zero_recall, one_recall)
+	print 'Number of times each class was predicted', cts_total, cts_correct
 
 if __name__=='__main__':
 	main()
